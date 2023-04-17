@@ -1,0 +1,11 @@
+{
+  "domain": "divvy_station_tracker",
+  "name": "Divvy Bike Station Tracker",
+  "documentation": "",
+  "codeowners": [],
+  "dependencies": ["zone"],
+  "config_flow": true,
+  "iot_class": "cloud_polling",
+  "requirements": ["git+https://github.com/kdkavanagh/pybikes.git#pybikes==1.0.2"],
+  "version": "0.0.1"
+}

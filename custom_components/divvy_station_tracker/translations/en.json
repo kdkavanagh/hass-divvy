@@ -1,0 +1,14 @@
+{
+  "title": "Divvy Station Tracker",
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+            "station_name": "Bike stations to track",
+            "zone": "Zones to track undocked (free) bikes near"
+        },
+        "description": "Configure bike stations and zones of interest"
+      }
+    }
+  }
+}
