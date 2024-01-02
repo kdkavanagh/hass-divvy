@@ -69,8 +69,6 @@ async def async_setup_entry(
         device = DeviceInfo(
             identifiers={(DOMAIN, station_name)},
             **{
-                ATTR_LATITUDE: coordinator.data[station_name].latitude,
-                ATTR_LONGITUDE: coordinator.data[station_name].longitude,
                 ATTR_MANUFACTURER: "Divvy",
                 ATTR_NAME: station_name,
             }
