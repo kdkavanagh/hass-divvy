@@ -156,7 +156,6 @@ async def async_setup_entry(
             _LOGGER.info(f"Removing device: {dev_id}")
             dev_reg.async_remove_device(dev_id)
 
-    assert entities
     _LOGGER.info(f"Adding {len(entities)} divvy entities")
     async_add_entities(entities, True)
 
