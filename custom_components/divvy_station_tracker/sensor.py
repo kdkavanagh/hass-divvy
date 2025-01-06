@@ -1,31 +1,32 @@
 """Support for ComEd Hourly Pricing data."""
+
 from __future__ import annotations
 
 import enum
-
-from homeassistant.const import ATTR_LATITUDE, ATTR_LONGITUDE, ATTR_MANUFACTURER, ATTR_NAME, CONF_ZONE
-from homeassistant.helpers.entity import DeviceInfo
-from . import BikeCoordinator, DOMAIN, CONF_STATION_NAME, CONF_COORDINATOR
 import logging
 from operator import itemgetter
-from homeassistant.components.sensor.const import STATE_CLASS_MEASUREMENT
-from homeassistant.config_entries import ConfigEntry
-
 
 import pybikes
-
-
-from homeassistant.components.sensor import (
-    SensorEntity,
+from homeassistant.components.sensor import SensorEntity
+from homeassistant.components.sensor.const import STATE_CLASS_MEASUREMENT
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import (
+    ATTR_LATITUDE,
+    ATTR_LONGITUDE,
+    ATTR_MANUFACTURER,
+    ATTR_NAME,
+    CONF_ZONE,
 )
 from homeassistant.core import Event, HomeAssistant, callback
+from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.update_coordinator import (
-    CoordinatorEntity,
-)
-from homeassistant.helpers import entity_registry as er, device_registry as dr
-from homeassistant.util.location import distance
 from homeassistant.helpers.event import async_track_state_change_event
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.util.location import distance
+
+from . import CONF_COORDINATOR, CONF_STATION_NAME, DOMAIN, BikeCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -41,9 +42,9 @@ class _MetaType(enum.Enum):
             return int(station.free)
         if self == _MetaType.REGULAR_BIKE:
             return int(station.bikes) - _MetaType.EBIKE.extract(station)
-        if self == _MetaType.SCOOTER and station.extra.get('has_scooters', False):
-            return int(station.extra['scooters'])
-        if self == _MetaType.EBIKE and station.extra.get('has_ebikes', False):
+        if self == _MetaType.SCOOTER and station.extra.get("has_scooters", False):
+            return int(station.extra["scooters"])
+        if self == _MetaType.EBIKE and station.extra.get("has_ebikes", False):
             return int(station.extra["ebikes"])
 
         return 0
@@ -59,10 +60,9 @@ async def async_setup_entry(
     entry_data = hass.data[DOMAIN][entry.entry_id]
 
     coordinator = entry_data[CONF_COORDINATOR]
-    
 
     entities: list[SensorEntity] = []
-    for station_name in (desired_stations:=entry_data[CONF_STATION_NAME]):
+    for station_name in (desired_stations := entry_data[CONF_STATION_NAME]):
         if station_name not in coordinator.data:
             _LOGGER.error(f"Divvy Could not find station named {station_name}")
             continue
@@ -73,11 +73,15 @@ async def async_setup_entry(
             **{
                 ATTR_MANUFACTURER: "Divvy",
                 ATTR_NAME: station_name,
-            }
+            },
         )
         entities.append(
             BikeStationMetadata(
-                f"{station_name} Open Docks", coordinator, station_name, _MetaType.FREE, device
+                f"{station_name} Open Docks",
+                coordinator,
+                station_name,
+                _MetaType.FREE,
+                device,
             )
         )
         entities.append(
@@ -86,21 +90,29 @@ async def async_setup_entry(
                 coordinator,
                 station_name,
                 _MetaType.REGULAR_BIKE,
-                device
+                device,
             )
         )
         entities.append(
             BikeStationMetadata(
-                f"{station_name} E-Bikes", coordinator, station_name, _MetaType.EBIKE, device
+                f"{station_name} E-Bikes",
+                coordinator,
+                station_name,
+                _MetaType.EBIKE,
+                device,
             )
         )
         entities.append(
             BikeStationMetadata(
-                f"{station_name} Scooters", coordinator, station_name, _MetaType.SCOOTER, device
+                f"{station_name} Scooters",
+                coordinator,
+                station_name,
+                _MetaType.SCOOTER,
+                device,
             )
         )
 
-    for zone_id in (desired_zones:=entry_data[CONF_ZONE]):
+    for zone_id in (desired_zones := entry_data[CONF_ZONE]):
         registry = er.async_get(hass)
         er.async_validate_entity_ids(registry, [zone_id])
         zone_name = hass.states.get(zone_id).name
@@ -113,7 +125,9 @@ async def async_setup_entry(
     remove_entities = set()
     remove_devs = set()
     for ent in er.async_entries_for_config_entry(ent_reg, entry.entry_id):
-        if not any(x in ent.unique_id for x in desired_stations) and not any(x in ent.unique_id for x in desired_zones):
+        if not any(x in ent.unique_id for x in desired_stations) and not any(
+            x in ent.unique_id for x in desired_zones
+        ):
             remove_entities.add(ent.entity_id)
             if ent.device_id:
                 remove_devs.add(ent.device_id)
@@ -123,7 +137,7 @@ async def async_setup_entry(
         for entity_id in remove_entities:
             _LOGGER.info(f"Removing entity: {entity_id}")
             ent_reg.async_remove(entity_id)
-        
+
     desired_device_ids = {}
     for x in entities:
         if x.device_info:
@@ -141,9 +155,7 @@ async def async_setup_entry(
         for dev_id in remove_devs:
             _LOGGER.info(f"Removing device: {dev_id}")
             dev_reg.async_remove_device(dev_id)
- 
 
-    
     assert entities
     _LOGGER.info(f"Adding {len(entities)} divvy entities")
     async_add_entities(entities, True)
