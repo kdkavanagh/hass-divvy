@@ -62,7 +62,7 @@ async def async_setup_entry(
     coordinator = entry_data[CONF_COORDINATOR]
 
     entities: list[SensorEntity] = []
-    for station_name in (desired_stations := entry_data[CONF_STATION_NAME]):
+    for station_name in (desired_stations := entry_data.get(CONF_STATION_NAME, [])):
         if station_name not in coordinator.data:
             _LOGGER.error(f"Divvy Could not find station named {station_name}")
             continue
@@ -112,7 +112,7 @@ async def async_setup_entry(
             )
         )
 
-    for zone_id in (desired_zones := entry_data[CONF_ZONE]):
+    for zone_id in (desired_zones := entry_data.get(CONF_ZONE, [])):
         registry = er.async_get(hass)
         er.async_validate_entity_ids(registry, [zone_id])
         zone_name = hass.states.get(zone_id).name
