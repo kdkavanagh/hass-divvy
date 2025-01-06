@@ -64,7 +64,9 @@ async def async_setup_entry(
     entities: list[SensorEntity] = []
     for station_name in (desired_stations:=entry_data[CONF_STATION_NAME]):
         if station_name not in coordinator.data:
-            raise Exception(f"Divvy Could not find station named {station_name}")
+            _LOGGER.error(f"Divvy Could not find station named {station_name}")
+            continue
+
         _LOGGER.info(f"Setting up divvy tracker for station {station_name}")
         device = DeviceInfo(
             identifiers={(DOMAIN, station_name)},
