@@ -8,7 +8,7 @@ from operator import itemgetter
 
 import pybikes
 from homeassistant.components.sensor import SensorEntity
-from homeassistant.components.sensor.const import STATE_CLASS_MEASUREMENT
+from homeassistant.components.sensor.const import SensorStateClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     ATTR_LATITUDE,
@@ -174,7 +174,7 @@ class NearbyFreeBikes(CoordinatorEntity, SensorEntity):
         self._attr_suggested_display_precision = 0
         self._attr_name = name
         self._attr_extra_state_attributes = {}
-        self._attr_state_class = STATE_CLASS_MEASUREMENT
+        self._attr_state_class = SensorStateClass.MEASUREMENT
 
     async def async_added_to_hass(self) -> None:
         """Register callbacks."""
@@ -239,7 +239,7 @@ class BikeStationMetadata(CoordinatorEntity, SensorEntity):
         self._attr_unique_id = f"{DOMAIN}_{self._station_name}_{metadata_key}"
         self._attr_suggested_display_precision = 0
         self._attr_name = name
-        self._attr_state_class = STATE_CLASS_MEASUREMENT
+        self._attr_state_class = SensorStateClass.MEASUREMENT
         self._device = device
 
     @property
