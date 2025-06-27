@@ -7,6 +7,7 @@ import pybikes
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_ZONE, SERVICE_RELOAD, Platform
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.service import async_register_admin_service
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
@@ -71,7 +72,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
         await asyncio.gather(*reload_tasks)
 
-    hass.helpers.service.async_register_admin_service(
+    async_register_admin_service(
         DOMAIN,
         SERVICE_RELOAD,
         _handle_reload,
